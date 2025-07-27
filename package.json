@@ -1,6 +1,6 @@
 {
   "name": "graphingjs",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A powerful command-line graphing tool that creates high-resolution plots, interactive HTML visualizations, and ASCII terminal plots of mathematical expressions.",
   "main": "index.js",
   "bin": {
