@@ -8,6 +8,282 @@ const readlineSync = require('readline-sync');
 const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json')));
 const { program } = require('commander');
 
+// Function to convert MathJS expressions to proper mathematical notation
+function convertToMathNotation(expression) {
+  let mathNotation = expression;
+  
+  // Replace MathJS function names with mathematical notation
+  const replacements = {
+    // Trigonometric functions
+    'sin(': 'sin(',
+    'cos(': 'cos(',
+    'tan(': 'tan(',
+    'csc(': 'csc(',
+    'sec(': 'sec(',
+    'cot(': 'cot(',
+    
+    // Inverse trigonometric functions
+    'asin(': 'sin⁻¹(',
+    'acos(': 'cos⁻¹(',
+    'atan(': 'tan⁻¹(',
+    'acsc(': 'csc⁻¹(',
+    'asec(': 'sec⁻¹(',
+    'acot(': 'cot⁻¹(',
+    
+    // Hyperbolic functions
+    'sinh(': 'sinh(',
+    'cosh(': 'cosh(',
+    'tanh(': 'tanh(',
+    'csch(': 'csch(',
+    'sech(': 'sech(',
+    'coth(': 'coth(',
+    
+    // Inverse hyperbolic functions
+    'asinh(': 'sinh⁻¹(',
+    'acosh(': 'cosh⁻¹(',
+    'atanh(': 'tanh⁻¹(',
+    'acsch(': 'csch⁻¹(',
+    'asech(': 'sech⁻¹(',
+    'acoth(': 'coth⁻¹(',
+    
+    // Logarithmic functions
+    'log(': 'ln(',
+    'log10(': 'log₁₀(',
+    'log2(': 'log₂(',
+    
+    // Exponential and power functions
+    'exp(': 'e^(',
+    'sqrt(': '√(',
+    'cbrt(': '∛(',
+    'pow(': '^',
+    
+    // Special functions
+    'abs(': '|',
+    'floor(': '⌊',
+    'ceil(': '⌈',
+    'round(': 'round(',
+    
+    // Constants
+    'pi': 'π',
+    'e': 'e',
+    'infinity': '∞',
+    'inf': '∞',
+    '-infinity': '-∞',
+    '-inf': '-∞',
+    
+    // Derivatives (if using MathJS derivative function)
+    'derivative(': 'd/dx(',
+    'diff(': 'd/dx(',
+    
+    // Integrals (if using MathJS integral function)
+    'integral(': '∫',
+    'int(': '∫',
+    
+    // Limits (if using MathJS limit function)
+    'limit(': 'lim',
+    
+    // Summation and products
+    'sum(': 'Σ',
+    'product(': 'Π',
+    
+    // Factorial
+    'factorial(': '!',
+    
+    // Other mathematical symbols
+    'and': '∧',
+    'or': '∨',
+    'not': '¬',
+    'xor': '⊕',
+    'implies': '⇒',
+    'iff': '⇔',
+    'forall': '∀',
+    'exists': '∃',
+    'in': '∈',
+    'notin': '∉',
+    'subset': '⊂',
+    'superset': '⊃',
+    'subseteq': '⊆',
+    'supseteq': '⊇',
+    'union': '∪',
+    'intersect': '∩',
+    'emptyset': '∅',
+    'infinity': '∞',
+    'partial': '∂',
+    'nabla': '∇',
+    'infty': '∞',
+    'inf': '∞',
+    'minf': '-∞',
+    'true': '⊤',
+    'false': '⊥',
+    'alpha': 'α',
+    'beta': 'β',
+    'gamma': 'γ',
+    'delta': 'δ',
+    'epsilon': 'ε',
+    'zeta': 'ζ',
+    'eta': 'η',
+    'theta': 'θ',
+    'iota': 'ι',
+    'kappa': 'κ',
+    'lambda': 'λ',
+    'mu': 'μ',
+    'nu': 'ν',
+    'xi': 'ξ',
+    'omicron': 'ο',
+    'rho': 'ρ',
+    'sigma': 'σ',
+    'tau': 'τ',
+    'upsilon': 'υ',
+    'phi': 'φ',
+    'chi': 'χ',
+    'psi': 'ψ',
+    'omega': 'ω',
+    'Alpha': 'Α',
+    'Beta': 'Β',
+    'Gamma': 'Γ',
+    'Delta': 'Δ',
+    'Epsilon': 'Ε',
+    'Zeta': 'Ζ',
+    'Eta': 'Η',
+    'Theta': 'Θ',
+    'Iota': 'Ι',
+    'Kappa': 'Κ',
+    'Lambda': 'Λ',
+    'Mu': 'Μ',
+    'Nu': 'Ν',
+    'Xi': 'Ξ',
+    'Omicron': 'Ο',
+    'Rho': 'Ρ',
+    'Sigma': 'Σ',
+    'Tau': 'Τ',
+    'Upsilon': 'Υ',
+    'Phi': 'Φ',
+    'Chi': 'Χ',
+    'Psi': 'Ψ',
+    'Omega': 'Ω'
+  };
+  
+  // Apply replacements
+  for (const [mathjs, notation] of Object.entries(replacements)) {
+    // Use regex to match whole words and function calls
+    const regex = new RegExp(`\\b${mathjs.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'g');
+    mathNotation = mathNotation.replace(regex, notation);
+  }
+  
+  // Handle special cases for derivatives
+  // Convert derivative notation like f'(x) to d/dx[f(x)]
+  mathNotation = mathNotation.replace(/(\w+)'\(/g, 'd/dx[$1(');
+  
+  // Handle power notation
+  mathNotation = mathNotation.replace(/\^/g, '^');
+  
+  // Handle square root notation
+  mathNotation = mathNotation.replace(/sqrt\(([^)]+)\)/g, '√($1)');
+  
+  // Handle cube root notation
+  mathNotation = mathNotation.replace(/cbrt\(([^)]+)\)/g, '∛($1)');
+  
+  // Handle absolute value notation
+  mathNotation = mathNotation.replace(/abs\(([^)]+)\)/g, '|$1|');
+  
+  // Handle floor and ceiling functions
+  mathNotation = mathNotation.replace(/floor\(([^)]+)\)/g, '⌊$1⌋');
+  mathNotation = mathNotation.replace(/ceil\(([^)]+)\)/g, '⌈$1⌉');
+  
+  // Handle factorial notation
+  mathNotation = mathNotation.replace(/factorial\(([^)]+)\)/g, '$1!');
+  
+  // Handle exponential notation more elegantly
+  mathNotation = mathNotation.replace(/exp\(([^)]+)\)/g, 'e^($1)');
+  
+  // Handle natural log notation
+  mathNotation = mathNotation.replace(/log\(([^)]+)\)/g, 'ln($1)');
+  
+  // Handle base-10 log notation
+  mathNotation = mathNotation.replace(/log10\(([^)]+)\)/g, 'log₁₀($1)');
+  
+  // Handle base-2 log notation
+  mathNotation = mathNotation.replace(/log2\(([^)]+)\)/g, 'log₂($1)');
+  
+  return mathNotation;
+}
+
+// Function to parse and convert derivative notation to MathJS syntax
+function parseDerivativeNotation(expression) {
+  let processedExpression = expression;
+  
+  // Pattern to match expressions ending with ' (derivative notation)
+  // This matches patterns like: x + 3', x^2', sin(x)', etc.
+  const derivativePattern = /([^']+)'$/;
+  const match = processedExpression.match(derivativePattern);
+  
+  if (match) {
+    const baseExpression = match[1].trim();
+    // For now, let's manually compute common derivatives instead of using MathJS derivative
+    // This is more reliable and gives us better control
+    processedExpression = computeDerivative(baseExpression);
+  }
+  
+  return processedExpression;
+}
+
+// Function to compute derivatives manually for common functions
+function computeDerivative(expression) {
+  // Remove spaces for easier parsing
+  const cleanExpr = expression.replace(/\s+/g, '');
+  
+  // Handle common derivative rules
+  if (cleanExpr === 'x') return '1';
+  if (cleanExpr === 'x^2') return '2*x';
+  if (cleanExpr === 'x^3') return '3*x^2';
+  if (cleanExpr === 'x^4') return '4*x^3';
+  if (cleanExpr === 'x^5') return '5*x^4';
+  if (cleanExpr === 'sin(x)') return 'cos(x)';
+  if (cleanExpr === 'cos(x)') return '-sin(x)';
+  if (cleanExpr === 'tan(x)') return 'sec(x)^2';
+  if (cleanExpr === 'exp(x)' || cleanExpr === 'e^x') return 'exp(x)';
+  if (cleanExpr === 'log(x)' || cleanExpr === 'ln(x)') return '1/x';
+  if (cleanExpr === 'sqrt(x)' || cleanExpr === 'x^(1/2)') return '1/(2*sqrt(x))';
+  
+  // Handle constants: d/dx(c) = 0
+  if (/^\d+$/.test(cleanExpr)) return '0';
+  
+  // Handle power rule: d/dx(x^n) = n*x^(n-1)
+  const powerMatch = cleanExpr.match(/x\^(\d+)/);
+  if (powerMatch) {
+    const power = parseInt(powerMatch[1]);
+    if (power === 1) return '1';
+    if (power === 2) return '2*x';
+    return `${power}*x^${power-1}`;
+  }
+  
+  // Handle constant multiples: d/dx(c*f(x)) = c*d/dx(f(x))
+  const constantMatch = cleanExpr.match(/^(\d+)\*x$/);
+  if (constantMatch) {
+    const constant = constantMatch[1];
+    return constant;
+  }
+  
+  // Handle addition: d/dx(f(x) + g(x)) = d/dx(f(x)) + d/dx(g(x))
+  if (cleanExpr.includes('+')) {
+    const parts = cleanExpr.split('+');
+    const derivatives = parts.map(part => computeDerivative(part.trim()));
+    return derivatives.join(' + ');
+  }
+  
+  // Handle subtraction: d/dx(f(x) - g(x)) = d/dx(f(x)) - d/dx(g(x))
+  if (cleanExpr.includes('-')) {
+    const parts = cleanExpr.split('-');
+    const derivatives = parts.map(part => computeDerivative(part.trim()));
+    return derivatives.join(' - ');
+  }
+  
+  // If we can't compute the derivative, return the original expression
+  // This allows the user to still plot the original function
+  console.log(`Warning: Could not compute derivative of "${expression}". Plotting original function.`);
+  return expression;
+}
+
 // Function to create ASCII plot
 function createAsciiPlot(expression, xMin, xMax, yMin, yMax, width = 80, height = 24) {
   const plot = [];
@@ -290,7 +566,7 @@ function createInteractiveHTML(expression, xMin, xMax, yMin, yMax, colors = null
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Graph: ${expression}</title>
+    <title>Interactive Graph: ${convertToMathNotation(expression)}</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
     <style>
         body {
@@ -391,9 +667,9 @@ function createInteractiveHTML(expression, xMin, xMax, yMin, yMax, colors = null
 </head>
 <body>
     <div class="container">
-        <div class="title">Interactive Graph: f(x) = ${expression}</div>
+        <div class="title">Interactive Graph: f(x) = ${convertToMathNotation(expression)}</div>
         
-        <div class="expression-display">f(x) = ${expression}</div>
+        <div class="expression-display">f(x) = ${convertToMathNotation(expression)}</div>
         
         <div class="controls">
             <div class="control-group">
@@ -418,7 +694,7 @@ function createInteractiveHTML(expression, xMin, xMax, yMin, yMax, colors = null
         </div>
         
         <div class="canvas-container">
-            <canvas id="plotCanvas" width="800" height="600"></canvas>
+            <canvas id="plotCanvas" width="1000" height="700"></canvas>
         </div>
         
         <div class="info">
@@ -1212,7 +1488,7 @@ function createHighResPlot(expression, xMin, xMax, yMin, yMax, width = 800, heig
   // Add title
   ctx.textAlign = 'center';
   ctx.font = 'bold 16px Arial';
-  ctx.fillText(`f(x) = ${expression}`, width / 2, 25);
+  ctx.fillText(`f(x) = ${convertToMathNotation(expression)}`, width / 2, 25);
   
   // Draw origin point if visible
   if (xMin <= 0 && xMax >= 0 && yMin <= 0 && yMax >= 0) {
@@ -1458,25 +1734,64 @@ program
 program
   .command('plot')
   .description('Plot a math expression')
-  .argument('<expression>', 'Math expression to graph')
+  .argument('[expression]', 'Math expression to graph')
   .option('-x, --xmin <number>', 'Minimum x value', '-10')
   .option('-X, --xmax <number>', 'Maximum x value', '10')
   .option('-y, --ymin <number>', 'Minimum y value', '-10')
   .option('-Y, --ymax <number>', 'Maximum y value', '10')
-  .option('-w, --width <number>', 'Plot width in pixels/characters', '800')
-  .option('-h, --height <number>', 'Plot height in pixels/characters', '600')
+  .option('-w, --width <number>', 'Plot width in pixels/characters', '120')
+  .option('-h, --height <number>', 'Plot height in pixels/characters', '30')
   .option('-o, --output <filename>', 'Output filename', 'plot.png')
   .option('-d, --default', 'Use default colors without prompting')
   .option('-i, --interactive', 'Create interactive HTML plot')
   .option('-p, --points <number>', 'Point interval for selectable points (default: none)', '0')
   .option('-a, --ascii', 'Create ASCII plot for terminal output')
   .action((expression, options) => {
+    // Check if expression is provided
+    if (!expression || expression.trim() === '') {
+      console.log('\n❌ Error: Missing expression');
+      console.log('\nUsage: graph plot <expression> [options]');
+      console.log('\nArguments:');
+      console.log('  <expression>    Math expression to graph (required)');
+      console.log('\nExamples:');
+      console.log('  graph plot "x^2"');
+      console.log('  graph plot "sin(x)" --ascii');
+      console.log('  graph plot "x^2 + 3*x + 1" --interactive');
+      console.log('  graph plot "x^2\'" --output parabola.png');
+      console.log('\nOptions:');
+      console.log('  -x, --xmin <number>     Minimum x value (default: -10)');
+      console.log('  -X, --xmax <number>     Maximum x value (default: 10)');
+      console.log('  -y, --ymin <number>     Minimum y value (default: -10)');
+      console.log('  -Y, --ymax <number>     Maximum y value (default: 10)');
+      console.log('  -w, --width <number>    Plot width in pixels/characters (default: 120)');
+      console.log('  -h, --height <number>   Plot height in pixels/characters (default: 30)');
+      console.log('  -o, --output <filename> Output filename (default: plot.png)');
+      console.log('  -d, --default           Use default colors without prompting');
+      console.log('  -i, --interactive       Create interactive HTML plot');
+      console.log('  -p, --points <number>   Point interval for selectable points (default: none)');
+      console.log('  -a, --ascii             Create ASCII plot for terminal output');
+      console.log('\nMathematical Notation:');
+      console.log('  • Use "x^2" for x²');
+      console.log('  • Use "sin(x)" for sine function');
+      console.log('  • Use "x^2\'" for derivative of x²');
+      console.log('  • Use "pi" for π');
+      console.log('  • Use "sqrt(x)" for √x');
+      console.log('  • Use "exp(x)" for e^x');
+      console.log('  • Use "log(x)" for ln(x)');
+      console.log('\nFor more help, run: graph plot --help');
+      process.exit(1);
+    }
+    // Parse derivative notation first
+    const processedExpression = parseDerivativeNotation(expression);
+    
     const plotType = options.interactive ? 'interactive HTML' : options.ascii ? 'ASCII terminal' : 'high-resolution';
-    console.log(`\nCreating ${plotType} plot: ${expression}`);
+    console.log(`\nCreating ${plotType} plot: ${convertToMathNotation(processedExpression)}`);
     console.log(`X range: ${options.xmin} to ${options.xmax}`);
     console.log(`Y range: ${options.ymin} to ${options.ymax}`);
     if (!options.interactive && !options.ascii) {
-      console.log(`Resolution: ${options.width}x${options.height} pixels`);
+      const pngWidth = parseInt(options.width) === 120 ? 800 : parseInt(options.width);
+      const pngHeight = parseInt(options.height) === 30 ? 600 : parseInt(options.height);
+      console.log(`Resolution: ${pngWidth}x${pngHeight} pixels`);
     } else if (options.ascii) {
       console.log(`ASCII resolution: ${options.width}x${options.height} characters`);
     }
@@ -1495,7 +1810,7 @@ program
       if (options.interactive) {
         // Create interactive HTML
         const html = createInteractiveHTML(
-          expression,
+          processedExpression,
           parseFloat(options.xmin),
           parseFloat(options.xmax),
           parseFloat(options.ymin),
@@ -1511,7 +1826,7 @@ program
       } else if (options.ascii) {
         // Create ASCII plot
         const asciiPlot = createAsciiPlot(
-          expression,
+          processedExpression,
           parseFloat(options.xmin),
           parseFloat(options.xmax),
           parseFloat(options.ymin),
@@ -1522,20 +1837,23 @@ program
         console.log(`ASCII plot for terminal output:`);
         console.log(asciiPlot);
       } else {
-        // Create static PNG
+        // Create static PNG - use proper PNG dimensions if ASCII defaults are being used
+        const pngWidth = options.ascii ? parseInt(options.width) : (parseInt(options.width) === 120 ? 800 : parseInt(options.width));
+        const pngHeight = options.ascii ? parseInt(options.height) : (parseInt(options.height) === 30 ? 600 : parseInt(options.height));
+        
         const canvas = createHighResPlot(
-          expression,
+          processedExpression,
           parseFloat(options.xmin),
           parseFloat(options.xmax),
           parseFloat(options.ymin),
           parseFloat(options.ymax),
-          parseInt(options.width),
-          parseInt(options.height),
+          pngWidth,
+          pngHeight,
           colors
         );
         
         savePlot(canvas, options.output);
-        console.log(`\nExpression: ${expression}`);
+        console.log(`\nExpression: ${convertToMathNotation(processedExpression)}`);
         console.log(`\nTo view the plot, open: ${options.output}`);
       }
     } catch (error) {
