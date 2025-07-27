@@ -1,0 +1,30 @@
+{
+  "name": "graphingjs",
+  "version": "1.0.0",
+  "description": "A powerful command-line graphing tool that creates high-resolution plots, interactive HTML visualizations, and ASCII terminal plots of mathematical expressions.",
+  "main": "index.js",
+  "bin": {
+    "graph": "./cli.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/genZrizzCode/graphingjs.git"
+  },
+  "keywords": [],
+  "author": "genZrizzCode",
+  "license": "MIT",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/genZrizzCode/graphingjs/issues"
+  },
+  "homepage": "https://github.com/genZrizzCode/graphingjs#readme",
+  "dependencies": {
+    "canvas": "^3.1.2",
+    "commander": "^14.0.0",
+    "mathjs": "^14.6.0",
+    "readline-sync": "^1.4.10"
+  }
+}
