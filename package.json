@@ -13,7 +13,7 @@
     "type": "git",
     "url": "git+https://github.com/genZrizzCode/graphingjs.git"
   },
-  "keywords": [],
+  "keywords": ["math", "cli", "framework", "graphing", "mathjs", "commander", "plot", "canvas", "front-end", "genZrizzCode", "MaSoVaX", "many-lines", "oof", "html", "png", "ascii", "terminal", "download", "please-download", "cool", "satisfying", "fun", "MIT"],
   "author": "genZrizzCode",
   "license": "MIT",
   "type": "commonjs",
